@@ -1,0 +1,11 @@
+--- prepare-kernel.sh	2017-05-21 18:03:47.000000000 +0200
++++ prepare-kernel_fixed.sh	2017-09-13 01:03:00.199416721 +0200
+@@ -122,7 +122,7 @@
+                 if test x$forcelink = x1 -o \
+ 		   ! $xenomai_root/$target_dir/$f -ef $linux_tree/$link_dir/$f;
+ 		then
+-                    ln -sf $xenomai_root/$target_dir/$f $linux_tree/$link_dir/$f
++                    cp $xenomai_root/$target_dir/$f $linux_tree/$link_dir/$f
+                 fi
+             else
+                 if test `check_filter $link_dir/$f` = "ok"; then
