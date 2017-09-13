@@ -1,0 +1,11 @@
+--- Kconfig	2017-09-13 21:37:51.740407177 +0200
++++ Kconfig_fixed	2017-09-13 21:38:07.072455917 +0200
+@@ -10,7 +10,7 @@
+ if XENO_DRIVERS_GPIO
+ 
+ config XENO_DRIVERS_GPIO_BCM2835
+-	depends on MACH_BCM2708
++	depends on MACH_BCM2708 || MACH_BCM2709 
+ 	bool "Support for BCM2835 GPIOs"
+ 	help
+ 
