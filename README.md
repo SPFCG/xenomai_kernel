@@ -301,10 +301,40 @@ mkdir ../dist/xenomai
 export DESTDIR=`realpath ../dist/xenomai`  # realpath because must be absolute path
 make  DESTDIR="$DESTDIR"  install
 ```
+## EXTRA: Compile Real-Time SPI driver for the Broadcom BCM2835 and BCM2836 SoCs using the RTDM API.
+### Based on [https://github.com/nicolas-schurando/spi-bcm283x-rtdm](https://github.com/nicolas-schurando/spi-bcm283x-rtdm)
+---
+###1. Clone github repository
+```shell
+cd $BUILDDIR
+git clone https://github.com/nicolas-schurando/spi-bcm283x-rtdm.git
+```
+### 2. Compile project using our kernel source
+```shell
+cd spi-bcm283x-rtdm
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_DIR=$BUILDDIR/linux/
+```
+Compiled kernel module should be on patch:
+```shell
+ $BUILDDIR/spi-bcm283x-rtdm/release/spi-bcm283x-rtdm.ko
+```
+Copy the generated kernel module onto the target and load it with the following command.
+```shell
+ sudo insmod spi-bcm283x-rtdm.ko
+```
+The system log should display something like:
 
-
+```
+[   59.577534] bcm283x_spi_rtdm_init: Starting driver ...
+[   59.577582] bcm2835_init: Found device-tree node /soc.
+[   59.577615] bcm2835_init: /soc/ranges = 0x7e000000 0x3f000000 0x01000000.
+[   59.577638] bcm2835_init: Using device-tree values.
+[   59.577998] mapmem: mapping 0x3f000000 for gpio succeded to 0xbe000000
+[   59.578867] bcm283x_spi_rtdm_init: Device spidev0.0 registered without errors.
+[   59.579362] bcm283x_spi_rtdm_init: Device spidev0.1 registered without errors.
+```
 ## 6. Copy build stuff in dist/ to raspbian sdcard 
---
+---
 ### 6.1. Mount sdcard
 **Become root otherwise you cannot access sdcard**
 
@@ -346,7 +376,7 @@ cd ../
 cp -r dist/lib/modules/* ${MOUNTPOINT}/lib/modules
 ```
 
-#### update config for new kernel and device tree at end of /boot/config.txt add :
+#### Update config for new kernel and device tree at end of /boot/config.txt add :
 ```shell
 nano ${MOUNTPOINT}/boot/config.txt
 ```
@@ -359,11 +389,11 @@ nano ${MOUNTPOINT}/boot/config.txt
     device_tree=bcm2710-rpi-3-b.dtb
 ```
 
-#### update: if you just rename the just installed file '/boot/zImage' to '/boot/kernel7'  then you don't need to edit /boot/config.txt because the bootscript on the raspberry pi finds out it is running on pi2 or pi3 and the automatically boots '/boot/kernel7'.   
+#### Update: if you just rename the just installed file '/boot/zImage' to '/boot/kernel7'  then you don't need to edit /boot/config.txt because the bootscript on the raspberry pi finds out it is running on pi2 or pi3 and the automatically boots '/boot/kernel7'.   
 ####Note: on pi0 or pi1 it boots '/boot/kernel' instead!
 
 ### At the end:
-[
+
 ```shell
 umount ${MOUNTPOINT}/boot ${MOUNTPOINT}/
 ```
@@ -379,4 +409,5 @@ Documentation how to build kernel for raspbian:
 *  [http://www.blaess.fr/christophe/2016/05/22/xenomai-3-sur-raspberry-pi-2/](http://www.blaess.fr/christophe/2016/05/22/xenomai-3-sur-raspberry-pi-2/)
 *  [http://wiki.csie.ncku.edu.tw/embedded/xenomai#xenomai-3-on-raspberry-pi-3](http://wiki.csie.ncku.edu.tw/embedded/xenomai#xenomai-3-on-raspberry-pi-3)
 *  [https://xenomai.org/installing-xenomai-3-x/](https://xenomai.org/installing-xenomai-3-x/)
+*  [https://github.com/nicolas-schurando/spi-bcm283x-rtdm](https://github.com/nicolas-schurando/spi-bcm283x-rtdm)
 
