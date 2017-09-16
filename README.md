@@ -6,7 +6,7 @@
 ```shell
 # install git and subversion
 sudo apt-get update
-sudo apt-get install git subversion
+sudo apt-get install git subversion gcc-arm-linux-gnueabihf libncurses5-dev
 
 # Preapre variables
 export BUILDDIR=/tmp/rpi3
@@ -194,9 +194,10 @@ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
 ```shell
 sudo apt-get  install libncurses5-dev
 ```
-### Run menuconfig
+### Run menuconfi
+```shell
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
-
+```
 ### Set the configurations according to the scheme:
 
     CPU Power Management  --->
@@ -362,7 +363,7 @@ cd ../..
 
 ### 6.3. Copy kernel and modules 
 
-# 6.3a. Copy kernel and device tree files from linux dir  to /boot/ directory on image
+#### 6.3a. Copy kernel and device tree files from linux dir  to /boot/ directory on image
 ```shell
 cd linux/
 cp arch/arm/boot/zImage ${MOUNTPOINT}/boot/
@@ -370,7 +371,7 @@ cp arch/arm/boot/dts/bcm27*.dtb ${MOUNTPOINT}/boot/
 rm -rf ${MOUNTPOINT}/boot/overlays/*
 cp arch/arm/boot/dts/overlays/*.dtb* ${MOUNTPOINT}/boot/overlays/
 ```
-### 6.3b. Copy modules from dist/lib/modules to sd card
+#### 6.3b. Copy modules from dist/lib/modules to sd card
 ```shell
 cd ../
 cp -r dist/lib/modules/* ${MOUNTPOINT}/lib/modules
@@ -390,7 +391,7 @@ nano ${MOUNTPOINT}/boot/config.txt
 ```
 
 #### Update: if you just rename the just installed file '/boot/zImage' to '/boot/kernel7'  then you don't need to edit /boot/config.txt because the bootscript on the raspberry pi finds out it is running on pi2 or pi3 and the automatically boots '/boot/kernel7'.   
-####Note: on pi0 or pi1 it boots '/boot/kernel' instead!
+#### Note: on pi0 or pi1 it boots '/boot/kernel' instead!
 
 ### At the end:
 
