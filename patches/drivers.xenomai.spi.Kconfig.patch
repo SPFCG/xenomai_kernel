@@ -1,0 +1,11 @@
+--- Kconfig.old	2017-09-19 23:39:13.835154000 +0200
++++ Kconfig	2017-10-24 12:42:09.713477353 +0200
+@@ -5,7 +5,7 @@
+        tristate
+ 
+ config XENO_DRIVERS_SPI_BCM2835
+-	depends on ARCH_BCM2708
++	depends on ARCH_BCM2708 || ARCH_BCM2709
+ 	select XENO_DRIVERS_SPI
+ 	tristate "Support for BCM2835 SPI"
+ 	help

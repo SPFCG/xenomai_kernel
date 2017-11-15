@@ -1,0 +1,76 @@
+--- spi-bcm2835.c.original	2017-09-19 23:39:13.835154000 +0200
++++ spi-bcm2835.c	2017-11-14 23:43:00.478187971 +0100
+@@ -86,7 +86,7 @@
+ 	u8 *rx_buf;
+ 	int tx_len;
+ 	int rx_len;
+-	rtdm_event_t transfer_done;
++	atomic_t  transfer_done;
+ };
+ 
+ struct spi_slave_bcm2835 {
+@@ -177,7 +177,7 @@
+ 
+ 	if (bcm2835_rd(spim, BCM2835_SPI_CS) & BCM2835_SPI_CS_DONE) {
+ 		bcm2835_reset_hw(spim);
+-		rtdm_event_signal(&spim->transfer_done);
++		atomic_set(&spim->transfer_done,1);
+ 	}
+ 
+ 	return RTDM_IRQ_HANDLED;
+@@ -231,6 +231,7 @@
+ 	struct spi_master_bcm2835 *spim = to_master_bcm2835(slave);
+ 	struct rtdm_spi_config *config = &slave->config;
+ 	u32 cs;
++	int state;
+ 
+ 	cs = bcm2835_rd(spim, BCM2835_SPI_CS);
+ 
+@@ -245,20 +246,25 @@
+ 	/* "active" is the logical state, not the impedance level. */
+ 
+ 	if (active) {
+-		if (config->mode & SPI_NO_CS)
++		if (config->mode & SPI_NO_CS){
+ 			cs |= BCM2835_SPI_CS_CS_10 | BCM2835_SPI_CS_CS_01;
+-		else {
++		}else {
+ 			cs &= ~(BCM2835_SPI_CS_CS_10 | BCM2835_SPI_CS_CS_01);
+ 			cs |= slave->chip_select;
++			state = !!(slave->config.mode & SPI_CS_HIGH);
++			gpiod_set_raw_value(slave->cs_gpiod, state);
+ 		}
+ 	} else {
+ 		/* Put HW-CS into deselected state. */
+ 		cs &= ~BCM2835_SPI_CS_CSPOL;
+ 		/* Use the "undefined" chip-select as precaution. */
+ 		cs |= BCM2835_SPI_CS_CS_10 | BCM2835_SPI_CS_CS_01;
++		state = !(slave->config.mode & SPI_CS_HIGH);
++		gpiod_set_raw_value(slave->cs_gpiod, state);
+ 	}
+ 
+ 	bcm2835_wr(spim, BCM2835_SPI_CS, cs);
++
+ }
+ 
+ static int do_transfer_irq(struct rtdm_spi_remote_slave *slave)
+@@ -293,7 +299,10 @@
+ 	cs |= BCM2835_SPI_CS_INTR | BCM2835_SPI_CS_INTD;
+ 	bcm2835_wr(spim, BCM2835_SPI_CS, cs);
+ 
+-	ret = rtdm_event_wait(&spim->transfer_done);
++	do{
++
++	}while(!atomic_read(&spim->transfer_done));
++	ret = 0;
+ 	if (ret) {
+ 		bcm2835_reset_hw(spim);
+ 		return ret;
+@@ -581,7 +590,6 @@
+ 	kmaster->dev.of_node = pdev->dev.of_node;
+ 
+ 	spim = container_of(master, struct spi_master_bcm2835, master);
+-	rtdm_event_init(&spim->transfer_done, 0);
+ 
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	spim->regs = devm_ioremap_resource(&pdev->dev, r);
