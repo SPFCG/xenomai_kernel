@@ -38,14 +38,15 @@ cd ..
 svn export https://github.com/SPFCG/xenomai_kernel/trunk/mirror/rpi-4.1.y/linux linux
 ```
 
-### 1b. Download Xenomai 3.0.5 source
+### 1b. Download Xenomai 3.0.5 source witch fixes
 ```shell
-wget http://git.xenomai.org/xenomai-3.git/snapshot/xenomai-3-3.0.5.tar.bz2
+wget https://git.xenomai.org/xenomai-3.git/snapshot/xenomai-3-5036abbe902454f4402a1bc11e7687f4ed39116b.tar.bz2 --output-document xenomai-3-3.0.5.tar.bz2
 tar -xjvf xenomai-3-3.0.5.tar.bz2
+mv xenomai-3-5036abbe902454f4402a1bc11e7687f4ed39116b xenomai-3-3.0.5
 ```
 **alternative version:**
 ```shell
-svn export https://github.com/SPFCG/xenomai_kernel/trunk/mirror/xenomai-3-3.0.5 xenomai-3-3.0.5
+svn export https://github.com/SPFCG/xenomai_kernel/trunk/mirror/xenomai-3-stable-3.0.x-15.11.17 xenomai-3-3.0.5
 ```
 
 ### 1c. Download ipipe patched ipipe with small trivial fix for kernel configuration on bcm-2709  (effects both kernel and some drivers(using interrupts))
@@ -86,10 +87,6 @@ wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/patch
 #
 ## 1e. Download a patched version of pinctrl-bcm2835.c from the official ipipe patch
 ```shell
-wget -O pinctrl-bcm2835.c  http://git.xenomai.org/ipipe.git/plain/drivers/pinctrl/bcm/pinctrl-bcm2835.c?h=vendors/raspberry/ipipe-4.1
-
-# mirror
-
 wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/pinctrl-bcm2835.c
 
 ```
@@ -99,11 +96,11 @@ wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/pinct
 wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/prepare-kernel.patch
 ```
 
-### 1g. Download a patch for Kconfig (drivers/xenomai/gpio/Kconfig)
-
+### 1g. Download a patch for a rtdm spi driver for bcm2835
 ```shell
-wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/Kconfig.patch
+wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/spi-bcm2835.patch
 ```
+
 ### 1h. Download a patch to support GCC6 to compile kernel source (drivers/char/broadcom/vc_sm/vmcs_sm.c)
 ```shell
 wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/vmcs_sm.patch
@@ -143,16 +140,6 @@ cd ../../
 xenomai-3-3.0.5/scripts/prepare-kernel.sh  --linux=linux/  --arch=arm  --ipipe=ipipe-core-4.1.18-arm-10.fixed.patch
 ```
 
-#### At the end apply patch to Kconfig to add support gpio on BCM2709
-
-this is needed for 'make deb-pkg' in the linux kernel source tree
-      which otherwise makes packages with broken links!!
-
-```shell
-cd linux/drivers/xenomai/gpio/
-patch -p0  <  ../../../../Kconfig.patch
-cd ../../../../
-```
 
 ### 2b. Apply Raspberry pi specific patch  to kernel  (patch of Mathieu Rondonneau specific for hardware bcm-2709 )
 #
@@ -169,12 +156,20 @@ cd ..
 cp  -f pinctrl-bcm2835.c  linux/drivers/pinctrl/bcm/pinctrl-bcm2835.c 
 ```
 
-### OPTIONAL: (use only if your compiler is GCC 6)  apply a patch to drivers/char/broadcom/vc_sm/vmcs_sm.c for support GCC6 compiler
 
+### 2d. apply a patch to rtdm spi bcm2835 driver
 ```shell
 cd linux/drivers/char/broadcom/vc_sm/
 patch -p0  <  ../../../../../vmcs_sm.patch
-cd ../../../../../
+cd ../../../../../ 
+```
+
+### OPTIONAL: (use only if your compiler is GCC 6)  apply a patch to drivers/char/broadcom/vc_sm/vmcs_sm.c for support GCC6 compiler
+
+```shell
+cd linux/drivers/xenomai/spi/
+patch -p0  <  ../../../../spi-bcm2835.patch
+cd ../../../../
 ```
 
 ## 3. Configure linux kernel/module option
