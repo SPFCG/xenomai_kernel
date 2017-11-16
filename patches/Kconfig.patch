@@ -4,7 +4,7 @@
  if XENO_DRIVERS_GPIO
  
  config XENO_DRIVERS_GPIO_BCM2835
--	depends on MACH_BCM2708
+-	depends on MACH_BCM2708 || MACH_BCM2835
 +	depends on MACH_BCM2708 || MACH_BCM2709 
  	bool "Support for BCM2835 GPIOs"
  	help

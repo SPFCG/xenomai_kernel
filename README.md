@@ -105,6 +105,20 @@ wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/spi-b
 ```shell
 wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/vmcs_sm.patch
 ```
+### 1i. Download defconfig for bcm2709 witch xenomai patch
+```shell
+wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/bcm2709_xenomai_defconfig
+```
+### 1j. Download a patch for Kconfig (drivers/xenomai/gpio/Kconfig)
+
+ ```shell
+wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/Kconfig.patch
+ ```
+### 1k. Download a patch for Kconfig (drivers/xenomai/spi/Kconfig)
+
+ ```shell
+wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/drivers.xenomai.spi.Kconfig.patch
+ ``
 
 
 ## 2.  Apply kernel patches ( xenomai+ipipe, bcm  )
@@ -139,8 +153,19 @@ cd ../../
 ```shell
 xenomai-3-3.0.5/scripts/prepare-kernel.sh  --linux=linux/  --arch=arm  --ipipe=ipipe-core-4.1.18-arm-10.fixed.patch
 ```
+#### At the end apply patch to Kconfig to add support rtdm gpio on BCM2709
 
-
+```shell
+cd linux/drivers/xenomai/gpio/
+patch -p0  <  ../../../../Kconfig.patch
+cd ../../../../
+```
+#### At the end apply patch to Kconfig to add support rtdm spi on BCM2709
+```shell
+cd linux/drivers/xenomai/spi/
+patch -p0  <  ../../../../drivers.xenomai.spi.Kconfig.patch
+cd ../../../../
+```
 ### 2b. Apply Raspberry pi specific patch  to kernel  (patch of Mathieu Rondonneau specific for hardware bcm-2709 )
 #
 ```shell
@@ -158,13 +183,6 @@ cp  -f pinctrl-bcm2835.c  linux/drivers/pinctrl/bcm/pinctrl-bcm2835.c
 
 
 ### 2d. apply a patch to rtdm spi bcm2835 driver
-```shell
-cd linux/drivers/char/broadcom/vc_sm/
-patch -p0  <  ../../../../../vmcs_sm.patch
-cd ../../../../../ 
-```
-
-### OPTIONAL: (use only if your compiler is GCC 6)  apply a patch to drivers/char/broadcom/vc_sm/vmcs_sm.c for support GCC6 compiler
 
 ```shell
 cd linux/drivers/xenomai/spi/
@@ -172,17 +190,30 @@ patch -p0  <  ../../../../spi-bcm2835.patch
 cd ../../../../
 ```
 
+### 2e. Compy xenoami bcm2835 defconfig to directory witch configs
+```shell
+cp  -f bcm2835_xenomai_defconfig  linux/arch/arm/configs/.
+```
+
+### OPTIONAL: (use only if your compiler is GCC 6)  apply a patch to drivers/char/broadcom/vc_sm/vmcs_sm.c for support GCC6 compiler
+```shell
+cd linux/drivers/char/broadcom/vc_sm/
+patch -p0  <  ../../../../../vmcs_sm.patch
+cd ../../../../../ 
+```
+
+
 ## 3. Configure linux kernel/module option
 ---
 ### Go to kernel source directory:
 ```shell
 cd linux
 ```
-### Create default config for bcm2709
+### Create default config for bcm2835
 ```shell
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2835_xenomai_defconfig
 ```
- a default configuration for bcm2709 written to .config
+ a default configuration for bcm2835 written to .config
 ### Specialize config for xenomai
  install package needed for menuconfig: 
  
@@ -268,70 +299,9 @@ make -i modules_prepare
 cd ..
 ```
 
-
-## 5. Built Xenomai user space part  ( kernel part is built with kernel above)
+## 5. Copy build stuff in dist/ to raspbian sdcard 
 ---
-
-### You need to have installed autoconf and libtool :
-```shell
-sudo apt-get install autoconf
-sudo apt-get install libtool
-```
-
-### Configure details see : https://xenomai.org/installing-xenomai-3-x/#_configuring
-```shell
-cd xenomai-3-3.0.5
-./scripts/bootstrap 
-./configure CFLAGS="-march=armv7-a  -mfloat-abi=hard -mfpu=neon -ffast-math" --host=arm-linux-gnueabihf --enable-smp --with-core=cobalt -enable-debug=partial
-
-#
-# note : http://xenomai.org/installing-xenomai-3-x/
-#          –enable-smp
-#              Turns on SMP support for Xenomai libraries.
-#
-#              Caution
-#                  SMP support must be enabled in Xenomai libraries when the client
-#                  applications are running over a SMP-capable kernel.
-
-mkdir ../dist/xenomai
-export DESTDIR=`realpath ../dist/xenomai`  # realpath because must be absolute path
-make  DESTDIR="$DESTDIR"  install
-```
-## EXTRA: Compile Real-Time SPI driver for the Broadcom BCM2835 and BCM2836 SoCs using the RTDM API.
-### Based on [https://github.com/nicolas-schurando/spi-bcm283x-rtdm](https://github.com/nicolas-schurando/spi-bcm283x-rtdm)
----
-###1. Clone github repository
-```shell
-cd $BUILDDIR
-git clone https://github.com/nicolas-schurando/spi-bcm283x-rtdm.git
-```
-### 2. Compile project using our kernel source
-```shell
-cd spi-bcm283x-rtdm
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_DIR=$BUILDDIR/linux/
-```
-Compiled kernel module should be on patch:
-```shell
- $BUILDDIR/spi-bcm283x-rtdm/release/spi-bcm283x-rtdm.ko
-```
-Copy the generated kernel module onto the target and load it with the following command.
-```shell
- sudo insmod spi-bcm283x-rtdm.ko
-```
-The system log should display something like:
-
-```
-[   59.577534] bcm283x_spi_rtdm_init: Starting driver ...
-[   59.577582] bcm2835_init: Found device-tree node /soc.
-[   59.577615] bcm2835_init: /soc/ranges = 0x7e000000 0x3f000000 0x01000000.
-[   59.577638] bcm2835_init: Using device-tree values.
-[   59.577998] mapmem: mapping 0x3f000000 for gpio succeded to 0xbe000000
-[   59.578867] bcm283x_spi_rtdm_init: Device spidev0.0 registered without errors.
-[   59.579362] bcm283x_spi_rtdm_init: Device spidev0.1 registered without errors.
-```
-## 6. Copy build stuff in dist/ to raspbian sdcard 
----
-### 6.1. Mount sdcard
+### 5.1. Mount sdcard
 **Become root otherwise you cannot access sdcard**
 
 ```shell
@@ -347,7 +317,7 @@ mount ${SDCARD}1 ${MOUNTPOINT}/boot
 
 cd $BUILDDIR
 ```
-### 6.2. Copy Xenomai user space files to sd card
+### 5.2. Copy Xenomai user space files to sd card
 
 ```shell
 cd dist/xenomai
@@ -356,9 +326,9 @@ cp -a * ${MOUNTPOINT}/
 cd ../..
 ```
 
-### 6.3. Copy kernel and modules 
+### 5.3. Copy kernel and modules 
 
-#### 6.3a. Copy kernel and device tree files from linux dir  to /boot/ directory on image
+#### 5.3a. Copy kernel and device tree files from linux dir  to /boot/ directory on image
 ```shell
 cd linux/
 cp arch/arm/boot/zImage ${MOUNTPOINT}/boot/
@@ -366,7 +336,7 @@ cp arch/arm/boot/dts/bcm27*.dtb ${MOUNTPOINT}/boot/
 rm -rf ${MOUNTPOINT}/boot/overlays/*
 cp arch/arm/boot/dts/overlays/*.dtb* ${MOUNTPOINT}/boot/overlays/
 ```
-#### 6.3b. Copy modules from dist/lib/modules to sd card
+#### 5.3b. Copy modules from dist/lib/modules to sd card
 ```shell
 cd ../
 cp -r dist/lib/modules/* ${MOUNTPOINT}/lib/modules
