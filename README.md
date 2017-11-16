@@ -118,7 +118,7 @@ wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/Kconf
 
  ```shell
 wget https://raw.githubusercontent.com/SPFCG/xenomai_kernel/master/patches/drivers.xenomai.spi.Kconfig.patch
- ``
+ ```
 
 
 ## 2.  Apply kernel patches ( xenomai+ipipe, bcm  )
