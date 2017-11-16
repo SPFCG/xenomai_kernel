@@ -298,10 +298,39 @@ make -i modules_prepare
 # building kernel modules should work fine now!  
 cd ..
 ```
-
-## 5. Copy build stuff in dist/ to raspbian sdcard 
+## 5. Built Xenomai user space part  ( kernel part is built with kernel above)
 ---
-### 5.1. Mount sdcard
+
+### You need to have installed autoconf and libtool :
+```shell
+sudo apt-get install autoconf
+sudo apt-get install libtool
+```
+
+### Configure details see : https://xenomai.org/installing-xenomai-3-x/#_configuring
+```shell
+cd xenomai-3-3.0.5
+./scripts/bootstrap 
+./configure CFLAGS="-march=armv7-a  -mfloat-abi=hard -mfpu=neon -ffast-math" --host=arm-linux-gnueabihf --enable-smp --with-core=cobalt -enable-debug=partial
+
+#
+# note : http://xenomai.org/installing-xenomai-3-x/
+#          –enable-smp
+#              Turns on SMP support for Xenomai libraries.
+#
+#              Caution
+#                  SMP support must be enabled in Xenomai libraries when the client
+#                  applications are running over a SMP-capable kernel.
+
+mkdir ../dist/xenomai
+export DESTDIR=`realpath ../dist/xenomai`  # realpath because must be absolute path
+make  DESTDIR="$DESTDIR"  install
+```
+
+
+## 6. Copy build stuff in dist/ to raspbian sdcard 
+---
+### 6.1. Mount sdcard
 **Become root otherwise you cannot access sdcard**
 
 ```shell
@@ -317,7 +346,7 @@ mount ${SDCARD}1 ${MOUNTPOINT}/boot
 
 cd $BUILDDIR
 ```
-### 5.2. Copy Xenomai user space files to sd card
+### 6.2. Copy Xenomai user space files to sd card
 
 ```shell
 cd dist/xenomai
@@ -326,9 +355,9 @@ cp -a * ${MOUNTPOINT}/
 cd ../..
 ```
 
-### 5.3. Copy kernel and modules 
+### 6.3. Copy kernel and modules 
 
-#### 5.3a. Copy kernel and device tree files from linux dir  to /boot/ directory on image
+#### 6.3a. Copy kernel and device tree files from linux dir  to /boot/ directory on image
 ```shell
 cd linux/
 cp arch/arm/boot/zImage ${MOUNTPOINT}/boot/
@@ -336,7 +365,7 @@ cp arch/arm/boot/dts/bcm27*.dtb ${MOUNTPOINT}/boot/
 rm -rf ${MOUNTPOINT}/boot/overlays/*
 cp arch/arm/boot/dts/overlays/*.dtb* ${MOUNTPOINT}/boot/overlays/
 ```
-#### 5.3b. Copy modules from dist/lib/modules to sd card
+#### 6.3b. Copy modules from dist/lib/modules to sd card
 ```shell
 cd ../
 cp -r dist/lib/modules/* ${MOUNTPOINT}/lib/modules
