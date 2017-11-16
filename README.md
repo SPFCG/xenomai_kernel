@@ -192,7 +192,7 @@ cd ../../../../
 
 ### 2e. Compy xenoami bcm2835 defconfig to directory witch configs
 ```shell
-cp  -f bcm2835_xenomai_defconfig  linux/arch/arm/configs/.
+cp  -f bcm2709_xenomai_defconfig  linux/arch/arm/configs/.
 ```
 
 ### OPTIONAL: (use only if your compiler is GCC 6)  apply a patch to drivers/char/broadcom/vc_sm/vmcs_sm.c for support GCC6 compiler
@@ -211,7 +211,7 @@ cd linux
 ```
 ### Create default config for bcm2835
 ```shell
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2835_xenomai_defconfig
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_xenomai_defconfig
 ```
  a default configuration for bcm2835 written to .config
 ### Specialize config for xenomai
