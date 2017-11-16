@@ -323,7 +323,7 @@ cd $BUILDDIR/xenomai-3-3.0.5
 #                  applications are running over a SMP-capable kernel.
 
 mkdir ../dist/xenomai
-export DESTDIR=`realpath ../dist/xenomai`  # realpath because must be absolute path
+export DESTDIR=$BUILDDIR/dist/xenomai
 make  DESTDIR="$DESTDIR"  install
 ```
 
