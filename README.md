@@ -309,9 +309,9 @@ sudo apt-get install libtool
 
 ### Configure details see : https://xenomai.org/installing-xenomai-3-x/#_configuring
 ```shell
-cd xenomai-3-3.0.5
-./scripts/bootstrap 
-./configure CFLAGS="-march=armv7-a  -mfloat-abi=hard -mfpu=neon -ffast-math" --host=arm-linux-gnueabihf --enable-smp --with-core=cobalt -enable-debug=partial
+cd $BUILDDIR/xenomai-3-3.0.5
+./scripts/bootstrap
+./configure CFLAGS="-march=armv7-a  -mfloat-abi=hard -mfpu=neon -ffast-math" --host=arm-linux-gnueabihf --enable-smp --with-core=cobalt
 
 #
 # note : http://xenomai.org/installing-xenomai-3-x/
